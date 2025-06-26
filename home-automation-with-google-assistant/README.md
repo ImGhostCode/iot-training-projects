@@ -5,7 +5,7 @@
 > - Remote control via Arduino IoT Cloud
 > - Manual control via physical switches
 > - Voice control using Google Assistant
-
+> - Remote control via Infrared
 ---
 
 ## 🚀 Features
@@ -14,7 +14,7 @@
 - ✅ Real-time state sync between Arduino IoT Cloud and Google Assistant.
 - ✅ Manual override supported without desynchronizing the cloud.
 - ✅ Seamless integration with Google Home.
-
+- ✅ Integrated infrared remote control.
 ---
 
 ## 🔧 Hardware Used
@@ -24,6 +24,7 @@
 | ESP32 Dev Module      | 1        |
 | 4-Channel Relay Module| 1        |
 | Switch                | 4        |
+| Remote control + IR Receiver 1838   | 1        |
 | 5V Power Supply (≥2A) | 1        |
 | Wires, Breadboard     | Optional |
 
@@ -57,11 +58,11 @@ You can say commands like:
 
 ## 🔗 Demo
 
-📽 [Watch demo video here](https://drive.google.com/file/d/1Mt9BZTUqXCrcm7yEpY2803BONbBJRyb7/view?usp=sharing)
+📽 [Watch demo video here](https://drive.google.com/file/d/1BswK-0hDOlqDYGCL6y7EtMECofskj8xD/view?usp=sharing)
 
 <div>
 <img src="dashboard.jpg"  alt="dashboard" height=400 width=200>
-<img src="circuit.jpg"  alt="circuit" height=400 width=300>
+<img src="circuit.jpg"  alt="circuit" height=400 width=330>
 </div>
 
 ---
@@ -96,7 +97,6 @@ You can say commands like:
 - Add DHT11 for auto fan control based on temperature
 - Add light sensor to auto control lights
 - Display device status on an LCD
-- Integrate infrared remote control
 
 ---
 

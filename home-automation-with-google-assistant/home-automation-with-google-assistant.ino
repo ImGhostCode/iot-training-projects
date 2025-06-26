@@ -17,7 +17,10 @@
 */
 #include "secrets.h"
 #include "thingProperties.h"
+#include <IRremote.hpp>
 
+#define IR_RECEIVE_PIN 35  // GPIO35
+#define ENABLE_LED_FEEDBACK true
 // Pin Definitions
 const int relayPins[]     = {32, 33, 25, 26};    // Relay GPIOs
 const int switchPins[]    = {27, 14, 12, 13}; // Switch GPIOs
@@ -52,6 +55,24 @@ void manualControl() {
       setCloudLight(i, false);
       Serial.printf("Switch-%d OFF\n", i + 1);
     }
+  }
+}
+
+/***********************************
+ *       IR REMOTE HANDLER
+ ***********************************/
+void ir_remote_control() {
+    if (IrReceiver.decode()) {
+      Serial.print("IR code: 0x");
+      Serial.println(IrReceiver.decodedIRData.decodedRawData, HEX);
+      switch (IrReceiver.decodedIRData.decodedRawData) {  
+          case 0xF30CFF00: updateRelay(0, !relayStates[0]); setCloudLight(0, relayStates[0]); break; // "1"
+          case 0xE718FF00: updateRelay(1, !relayStates[1]); setCloudLight(1, relayStates[1]); break; // "2"
+          case 0xA15EFF00: updateRelay(2, !relayStates[2]); setCloudLight(2, relayStates[2]); break; // "3"
+          case 0xF708FF00: updateRelay(3, !relayStates[3]); setCloudLight(3, relayStates[3]); break; // "4"
+          default: break;
+      }
+      IrReceiver.resume(); // Enable receiving of the next value
   }
 }
 
@@ -95,12 +116,14 @@ void setup() {
   ArduinoCloud.addCallback(ArduinoIoTCloudEvent::DISCONNECT, doThisOnDisconnect);
   setDebugMessageLevel(2);
   ArduinoCloud.printDebugInfo();
-
+  
   for (int i = 0; i < 4; i++) {
     pinMode(relayPins[i], OUTPUT);
     pinMode(switchPins[i], INPUT_PULLUP);
     digitalWrite(relayPins[i], HIGH); // OFF by default
   }
+
+  IrReceiver.begin(IR_RECEIVE_PIN, ENABLE_LED_FEEDBACK); // Start the receiver
 }
 
 /***********************************
@@ -109,6 +132,7 @@ void setup() {
 void loop() {
   ArduinoCloud.update();
   manualControl();
+  ir_remote_control();
 }
 
 /***********************************
