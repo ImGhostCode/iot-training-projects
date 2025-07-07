@@ -58,7 +58,7 @@ You can say commands like:
 
 ## 🔗 Demo
 
-📽 [Watch demo video here](https://drive.google.com/file/d/1BswK-0hDOlqDYGCL6y7EtMECofskj8xD/view?usp=sharing)
+📽 [Watch demo video here](https://drive.google.com/file/d/1_Qv2p5UukbTd8112upxAH9xY_oPKWFJr/view?usp=sharing)
 
 <div>
 <img src="dashboard.jpg"  alt="dashboard" height=400 width=200>
