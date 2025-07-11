@@ -18,7 +18,7 @@ unsigned long LOCKOUT_DURATION = 30000;
 
 #define POWER_LED_PIN 32
 #define RELAY_PIN 33
-#define BUTTON_PIN 25
+#define BUTTON_PIN 27
 #define BUZZER_PIN 26
 #define ROW_NUM 4
 #define COLUMN_NUM 4
@@ -62,17 +62,159 @@ bool notificationsEnabled = true;   // Default: notifications enabled
 bool passwordChangeEnabled = true;  // Default: password change enabled
 
 void handleRoot() {
-  String html = "<!DOCTYPE html><html><head><title>Smart Door Config</title>";
-  html += "<style>body{font-family:Arial;margin:20px}.form-group{margin:10px 0}input,button{padding:8px;margin:5px}</style></head>";
-  html += "<body><h1>Smart Door Configuration</h1><form action='/config' method='POST'>";
-  html += "<div class='form-group'><label>Blynk Auth Token:</label><input type='text' name='auth_token' value='" + String(BLYNK_AUTH_TOKEN) + "' maxlength='32'></div>";
-  html += "<div class='form-group'><label>WiFi SSID:</label><input type='text' name='ssid' value='" + String(ssid) + "' maxlength='31'></div>";
-  html += "<div class='form-group'><label>WiFi Password:</label><input type='text' name='wifi_pass' value='" + String(pass) + "' maxlength='63'></div>";
-  html += "<div class='form-group'><label>Door Password (4 digits):</label><input type='text' name='door_pass' value='" + String(correctPassword) + "' maxlength='4'></div>";
-  html += "<div class='form-group'><label>Unlock Duration (seconds):</label><input type='number' name='unlock_duration' value='" + String(UNLOCK_DURATION / 1000) + "' min='1' max='60'></div>";
-  html += "<div class='form-group'><label>Max Wrong Attempts:</label><input type='number' name='max_attempts' value='" + String(MAX_WRONG_ATTEMPTS) + "' min='1' max='10'></div>";
-  html += "<div class='form-group'><label>Lockout Duration (seconds):</label><input type='number' name='lockout_duration' value='" + String(LOCKOUT_DURATION / 1000) + "' min='10' max='300'></div>";
-  html += "<button type='submit'>Save & Restart</button></form></body></html>";
+  String html = R"rawliteral(
+  <!DOCTYPE html>
+  <html lang='en'>
+  <head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <link href='https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap' rel='stylesheet'>
+    <title>Smart Door Configuration</title>
+       <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #f4f7f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: #fff;
+            padding: 12px 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 480px;
+            margin: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 24px;
+            color: #333;
+            font-size: 22px;
+        }
+
+        h2 {
+            font-size: 18px;
+            color: #007BFF;
+            margin-top: 12px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 4px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 8px;
+        }
+
+        label {
+            margin-bottom: 6px;
+            color: #555;
+            font-weight: 500;
+            font-size: 15px;
+        }
+
+        input[type='text'],
+        input[type='password'],
+        input[type='number'] {
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        input:focus {
+            border-color: #007BFF;
+            outline: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #007BFF;
+            color: white;
+            font-size: 17px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 15px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        @media (max-width: 400px) {
+            h1 {
+                font-size: 20px;
+            }
+
+            button {
+                font-size: 16px;
+                padding: 12px;
+            }
+
+            input {
+                font-size: 15px;
+            }
+        }
+    </style>
+  </head>
+  <body>
+    <div class='container'>
+      <h1>Smart Door Configuration</h1>
+      <form action='/config' method='POST'>
+        <h2>WiFi & Cloud</h2>
+        <div class='form-group'>
+          <label for='ssid'>WiFi SSID:</label>
+          <input type='text' id='ssid' name='ssid' value=')rawliteral" + String(ssid) + R"rawliteral(' maxlength='31' placeholder='Your WiFi SSID' required>
+        </div>
+        <div class='form-group'>
+          <label for='wifi_pass'>WiFi Password:</label>
+          <input type='password' id='wifi_pass' name='wifi_pass' value=')rawliteral" + String(pass) + R"rawliteral(' maxlength='63' placeholder='Your WiFi Password'>
+        </div>
+        <div class='form-group'>
+          <label for='auth_token'>Blynk Auth Token:</label>
+          <input type='password' id='auth_token' name='auth_token' value=')rawliteral" + String(BLYNK_AUTH_TOKEN) + R"rawliteral(' maxlength='32' placeholder='Your Blynk Auth Token' required>
+        </div>
+
+        <h2>Smart Door Settings</h2>
+        <div class='form-group'>
+          <label for='door_pass'>Door Password (4 digits):</label>
+          <input type='text' id='door_pass' name='door_pass' value=')rawliteral" + String(correctPassword) + R"rawliteral(' maxlength='4' placeholder='0-9' required pattern='[0-9]{4}' required>
+        </div>
+        <div class='form-group'>
+          <label for='unlock_duration'>Unlock Duration (seconds):</label>
+          <input type='number' id='unlock_duration' name='unlock_duration' value=')rawliteral" + String(UNLOCK_DURATION / 1000) + R"rawliteral(' min='1' max='60' required>
+        </div>
+        <div class='form-group'>
+          <label for='max_attempts'>Max Wrong Attempts:</label>
+          <input type='number' id='max_attempts' name='max_attempts' value=')rawliteral" + String(MAX_WRONG_ATTEMPTS) + R"rawliteral(' min='1' max='10' required>
+        </div>
+        <div class='form-group'>
+          <label for='lockout_duration'>Lockout Duration (seconds):</label>
+          <input type='number' id='lockout_duration' name='lockout_duration' value=')rawliteral" + String(LOCKOUT_DURATION / 1000) + R"rawliteral(' min='10' max='300' required>
+        </div>
+
+        <button type='submit'>Save & Restart</button>
+      </form>
+    </div>
+  </body>
+  </html>
+  )rawliteral";
+
   server.send(200, "text/html", html);
 }
 
@@ -140,7 +282,7 @@ void setup() {
   EEPROM.begin(EEPROM_SIZE);
 
 // For testing
-  // clearEEPROM();
+  // clearEEPROM(); 
 
   readConfigFromEEPROM();
 
@@ -150,6 +292,8 @@ void setup() {
   pinMode(BUTTON_PIN, INPUT_PULLUP);
   digitalWrite(POWER_LED_PIN, HIGH);
   digitalWrite(RELAY_PIN, HIGH);  // LOCKED
+  isUnlocked = false; // Đảm bảo trạng thái ban đầu
+  lockDoor(); // Khởi tạo khóa
 
   // Buzzer PWM Setup for ESP32
   ledcAttach(BUZZER_PIN, PWM_FREQUENCY, PWM_RESOLUTION);
@@ -210,6 +354,7 @@ void setup() {
 
   if (WiFi.status() == WL_CONNECTED) {
     Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
+    Blynk.virtualWrite(V1, correctPassword);  // Update Blynk with the password
   } else {
     Serial.println("Blynk not started due to WiFi failure");
   }
@@ -301,7 +446,7 @@ void checkKeypad() {
         unlockDoor();
         wrongPasswordCount = 0;  // Reset wrong attempts
         if (notificationsEnabled) {
-          // Blynk.logEvent("door_event", "Door unlocked via correct password");
+          Blynk.logEvent("door_event", "Door unlocked via correct password");
         }
       } else {
         wrongPasswordCount++;
@@ -311,7 +456,7 @@ void checkKeypad() {
         delay(100);
         buzzerTone(0.8, 100);
         if (notificationsEnabled) {
-          // Blynk.logEvent("door_warning", String("Wrong password entered (") + wrongPasswordCount + "/5)");
+          Blynk.logEvent("door_warning", String("Wrong password entered (") + wrongPasswordCount + "/" + MAX_WRONG_ATTEMPTS + ")");
         }
         lcd.clear();
         lcd.setCursor(0, 0);
@@ -319,13 +464,14 @@ void checkKeypad() {
         lcd.setCursor(0, 1);
         lcd.print("Attempts: ");
         lcd.print(wrongPasswordCount);
-        lcd.print("/5");
+        lcd.print("/");
+        lcd.print(MAX_WRONG_ATTEMPTS);
         delay(2000);
         if (wrongPasswordCount >= MAX_WRONG_ATTEMPTS) {
           isLockedOut = true;
           lockoutStartTime = millis();
           if (notificationsEnabled) {
-            // Blynk.logEvent("door_warning", "System locked due to too many wrong attempts");
+            Blynk.logEvent("door_warning", "System locked due to too many wrong attempts");
           }
           Serial.println("System locked due to too many wrong attempts");
         } else {
@@ -393,7 +539,7 @@ void handleChangePassword(char key) {
         delay(100);
         buzzerTone(0.8, 100);
         if (notificationsEnabled) {
-          // Blynk.logEvent("door_warning", String("Wrong old password (") + wrongPasswordCount + "/5)");
+          Blynk.logEvent("door_warning", String("Wrong old password (") + wrongPasswordCount + "/" + MAX_WRONG_ATTEMPTS + ")");
         }
         lcd.clear();
         lcd.setCursor(0, 0);
@@ -407,7 +553,7 @@ void handleChangePassword(char key) {
           isLockedOut = true;
           lockoutStartTime = millis();
           if (notificationsEnabled) {
-            // Blynk.logEvent("door_warning", "System locked due to too many wrong attempts");
+            Blynk.logEvent("door_warning", "System locked due to too many wrong attempts");
           }
           Serial.println("System locked due to too many wrong attempts");
         } else {
@@ -454,6 +600,7 @@ void handleChangePassword(char key) {
       if (passwordIndex == 4) {
         strcpy(correctPassword, enteredPassword);
         writeConfigToEEPROM();
+        Blynk.virtualWrite(V1, correctPassword);  // Update Blynk with the new password
         wrongPasswordCount = 0;  // Reset wrong attempts on successful password change
         lcd.clear();
         lcd.setCursor(0, 0);
@@ -461,7 +608,7 @@ void handleChangePassword(char key) {
         lcd.setCursor(0, 1);
         lcd.print("Success!");
         if (notificationsEnabled) {
-          // Blynk.logEvent("door_event", "Password changed successfully");
+          Blynk.logEvent("door_event", "Password changed successfully");
         }
         Serial.print("Password changed to: ");
         Serial.println(correctPassword);
@@ -474,7 +621,7 @@ void handleChangePassword(char key) {
         lcd.setCursor(0, 1);
         lcd.print("4 digits needed");
         if (notificationsEnabled) {
-          // Blynk.logEvent("door_warning", "Invalid new password");
+          Blynk.logEvent("door_warning", "Invalid new password");
         }
         Serial.println("Invalid new password");
         buzzerTone(0.8, 100);
@@ -658,7 +805,7 @@ void checkLockout() {
       isLockedOut = false;
       wrongPasswordCount = 0;
       if (notificationsEnabled) {
-        // Blynk.logEvent("door_event", "System unlocked after lockout");
+        Blynk.logEvent("door_event", "System unlocked after lockout");
       }
       Serial.println("System unlocked after lockout");
       lcd.clear();
