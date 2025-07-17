@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Smart Door Configuration</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Smart Door Configuration</h1>
+        <form action="/config" method="POST">
+
+            <!-- WiFi & Cloud -->
+            <h2>WiFi & Cloud</h2>
+            <div class="form-group">
+                <label for="ssid">WiFi SSID:</label>
+                <input type="text" id="ssid" name="ssid" value="%SSID%" maxlength="31" required>
+            </div>
+
+            <div class="form-group">
+                <label for="wifi_pass">WiFi Password:</label>
+                <input type="password" id="wifi_pass" name="wifi_pass" value="%PASS%" maxlength="63" required>
+            </div>
+
+            <div class="form-group">
+                <label for="auth_token">Blynk Auth Token:</label>
+                <input type="password" id="auth_token" name="auth_token" value="%BLYNK_AUTH_TOKEN%" maxlength="32"
+                    required>
+            </div>
+
+            <!-- Smart Door Settings -->
+            <h2>Smart Door Settings</h2>
+            <div class="form-group">
+                <label for="door_pass">Door Password (4 digits):</label>
+                <input type="text" id="door_pass" name="door_pass" maxlength="4" pattern="\d{4}" placeholder="0-9" value="%DOOR_PASS%"
+                    required>
+            </div>
+
+            <div class="form-group">
+                <label for="unlock_duration">Unlock Duration (seconds):</label>
+                <input type="number" id="unlock_duration" name="unlock_duration" min="1" max="60"
+                    value="%UNLOCK_DURATION%" required>
+            </div>
+
+            <div class="form-group">
+                <label for="max_attempts">Max Wrong Attempts:</label>
+                <input type="number" id="max_attempts" name="max_attempts" min="1" max="10" value="%MAX_WRONG_ATTEMPTS%"
+                    required>
+            </div>
+
+            <div class="form-group">
+                <label for="lockout_duration">Lockout Duration (seconds):</label>
+                <input type="number" id="lockout_duration" name="lockout_duration" min="10" max="300"
+                    value="%LOCKOUT_DURATION%" required>
+            </div>
+
+            <button type="submit">Save & Restart</button>
+        </form>
+    </div>
+</body>
+
+</html>

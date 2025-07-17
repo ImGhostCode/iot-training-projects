@@ -8,6 +8,7 @@ char BLYNK_AUTH_TOKEN[33] = "";  // Default Auth Token
 #include <LiquidCrystal_I2C.h>
 #include <EEPROM.h>
 #include <WebServer.h>
+#include <LittleFS.h>
 
 char ssid[32] = "";
 char pass[64] = "";
@@ -61,161 +62,42 @@ bool isLockedOut = false;
 bool notificationsEnabled = true;   // Default: notifications enabled
 bool passwordChangeEnabled = true;  // Default: password change enabled
 
-void handleRoot() {
-  String html = R"rawliteral(
-  <!DOCTYPE html>
-  <html lang='en'>
-  <head>
-    <meta charset='UTF-8'>
-    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <link href='https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap' rel='stylesheet'>
-    <title>Smart Door Configuration</title>
-       <style>
-        * {
-            box-sizing: border-box;
-        }
+void handleRoot(){
+  Serial.println("Handling root request");
+  if (!LittleFS.exists("/index.html"))
+  {
+    server.send(500, "text/plain", "Error: index.html not found in LittleFS");
+    return;
+  }
+  File file = LittleFS.open("/index.html", "r");
+  String html = file.readString();
+  file.close();
 
-        body {
-            font-family: 'Roboto', sans-serif;
-            background: #f4f7f9;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        .container {
-            background: #fff;
-            padding: 12px 24px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 480px;
-            margin: 20px;
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 24px;
-            color: #333;
-            font-size: 22px;
-        }
-
-        h2 {
-            font-size: 18px;
-            color: #007BFF;
-            margin-top: 12px;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 4px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 8px;
-        }
-
-        label {
-            margin-bottom: 6px;
-            color: #555;
-            font-weight: 500;
-            font-size: 15px;
-        }
-
-        input[type='text'],
-        input[type='password'],
-        input[type='number'] {
-            padding: 12px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-        }
-
-        input:focus {
-            border-color: #007BFF;
-            outline: none;
-        }
-
-        button {
-            width: 100%;
-            padding: 14px;
-            background-color: #007BFF;
-            color: white;
-            font-size: 17px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            margin-top: 15px;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        @media (max-width: 400px) {
-            h1 {
-                font-size: 20px;
-            }
-
-            button {
-                font-size: 16px;
-                padding: 12px;
-            }
-
-            input {
-                font-size: 15px;
-            }
-        }
-    </style>
-  </head>
-  <body>
-    <div class='container'>
-      <h1>Smart Door Configuration</h1>
-      <form action='/config' method='POST'>
-        <h2>WiFi & Cloud</h2>
-        <div class='form-group'>
-          <label for='ssid'>WiFi SSID:</label>
-          <input type='text' id='ssid' name='ssid' value=')rawliteral" + String(ssid) + R"rawliteral(' maxlength='31' placeholder='Your WiFi SSID' required>
-        </div>
-        <div class='form-group'>
-          <label for='wifi_pass'>WiFi Password:</label>
-          <input type='password' id='wifi_pass' name='wifi_pass' value=')rawliteral" + String(pass) + R"rawliteral(' maxlength='63' placeholder='Your WiFi Password'>
-        </div>
-        <div class='form-group'>
-          <label for='auth_token'>Blynk Auth Token:</label>
-          <input type='password' id='auth_token' name='auth_token' value=')rawliteral" + String(BLYNK_AUTH_TOKEN) + R"rawliteral(' maxlength='32' placeholder='Your Blynk Auth Token' required>
-        </div>
-
-        <h2>Smart Door Settings</h2>
-        <div class='form-group'>
-          <label for='door_pass'>Door Password (4 digits):</label>
-          <input type='text' id='door_pass' name='door_pass' value=')rawliteral" + String(correctPassword) + R"rawliteral(' maxlength='4' placeholder='0-9' required pattern='[0-9]{4}' required>
-        </div>
-        <div class='form-group'>
-          <label for='unlock_duration'>Unlock Duration (seconds):</label>
-          <input type='number' id='unlock_duration' name='unlock_duration' value=')rawliteral" + String(UNLOCK_DURATION / 1000) + R"rawliteral(' min='1' max='60' required>
-        </div>
-        <div class='form-group'>
-          <label for='max_attempts'>Max Wrong Attempts:</label>
-          <input type='number' id='max_attempts' name='max_attempts' value=')rawliteral" + String(MAX_WRONG_ATTEMPTS) + R"rawliteral(' min='1' max='10' required>
-        </div>
-        <div class='form-group'>
-          <label for='lockout_duration'>Lockout Duration (seconds):</label>
-          <input type='number' id='lockout_duration' name='lockout_duration' value=')rawliteral" + String(LOCKOUT_DURATION / 1000) + R"rawliteral(' min='10' max='300' required>
-        </div>
-
-        <button type='submit'>Save & Restart</button>
-      </form>
-    </div>
-  </body>
-  </html>
-  )rawliteral";
+  html.replace("%BLYNK_AUTH_TOKEN%", String(BLYNK_AUTH_TOKEN));
+  html.replace("%SSID%", String(ssid));
+  html.replace("%PASS%", String(pass));
+  html.replace("%DOOR_PASS%", String(correctPassword));
+  html.replace("%UNLOCK_DURATION%", String(UNLOCK_DURATION / 1000));
+  html.replace("%MAX_WRONG_ATTEMPTS%", String(MAX_WRONG_ATTEMPTS));
+  html.replace("%LOCKOUT_DURATION%", String(LOCKOUT_DURATION / 1000));
 
   server.send(200, "text/html", html);
+}
+
+void handleCSS(){
+  Serial.println("Handling CSS request");
+  if (!LittleFS.exists("/styles.css"))
+  {
+    server.send(500, "text/plain", "Error: styles.css not found in LittleFS");
+    return;
+  }
+  File file = LittleFS.open("/styles.css", "r");
+  size_t sent = server.streamFile(file, "text/css");
+  file.close();
+  if (sent == 0)
+  {
+    server.send(500, "text/plain", "Error: Failed to send styles.css");
+  }
 }
 
 void handleConfig() {
@@ -277,6 +159,10 @@ BLYNK_WRITE(V3) {
 void setup() {
   Serial.begin(115200);
 
+    if(!LittleFS.begin()){
+    Serial.println("An Error has occurred while mounting LittleFS");
+    return;
+  }
 
   // Initialize EEPROM
   EEPROM.begin(EEPROM_SIZE);
@@ -348,6 +234,7 @@ void setup() {
   }
 
   server.on("/", handleRoot);
+  server.on("/styles.css", handleCSS);
   server.on("/config", HTTP_POST, handleConfig);
   server.begin();
   Serial.println("Web server started");
